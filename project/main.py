@@ -2,10 +2,11 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from .models import Restaurant, MenuItem
 from sqlalchemy import asc
 from . import db
+import logging
 
 main = Blueprint('main', __name__)
 
-#Show all restaurants
+
 @main.route('/')
 @main.route('/restaurant/')
 def showRestaurants():
@@ -57,8 +58,6 @@ def showMenu(restaurant_id):
     items = db.session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()
     return render_template('menu.html', items = items, restaurant = restaurant)
      
-
-
 #Create a new menu item
 @main.route('/restaurant/<int:restaurant_id>/menu/new/',methods=['GET','POST'])
 def newMenuItem(restaurant_id):
@@ -107,3 +106,19 @@ def deleteMenuItem(restaurant_id,menu_id):
         return redirect(url_for('main.showMenu', restaurant_id = restaurant_id))
     else:
         return render_template('deleteMenuItem.html', item = itemToDelete)
+
+#Search for a menu item
+@main.route('/restaurant/search/')
+def searchRestaurants():
+    logging.basicConfig(filename='./logging/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
+    logging.debug("abc")
+    query = request.args.get('q', '')
+    if query:
+        restaurants = db.session.query(Restaurant).filter(Restaurant.name.like('%{}%'.format(query))).order_by(asc(Restaurant.name)).all()
+    else:
+        restaurants = []
+    print(restaurants)
+    print("Hello world\n")
+    print(query)
+    return render_template('search.html', restaurants=restaurants, query=query)
+
