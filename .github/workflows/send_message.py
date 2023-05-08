@@ -1,16 +1,12 @@
 import requests
 
-import os
-print("hello world\n")
-print(os.getcwd())
-
 # Read the webhook ID and token from id.txt and token.txt respectively
 with open("id.txt", "r") as id_file, open("token.txt", "r") as token_file:
     webhook_id = id_file.read().strip()
     webhook_token = token_file.read().strip()
 
 # Define the message to send
-message = "A new push has been made to the repository!"
+message = "Some cunt made a push"
 
 # Define the payload to send to the webhook
 payload = {
