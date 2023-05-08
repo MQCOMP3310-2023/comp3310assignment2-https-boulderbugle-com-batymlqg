@@ -6,7 +6,7 @@ with open("id.txt", "r") as id_file, open("token.txt", "r") as token_file:
     webhook_token = token_file.read().strip()
 
 # Define the message to send
-message = "Some cunt made a push"
+message = "A new push has been made to the repository!"
 
 # Define the payload to send to the webhook
 payload = {
@@ -17,7 +17,14 @@ payload = {
 webhook_url = f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}"
 
 # Send the payload to the webhook URL
-response = requests.post(webhook_url, json=payload)
+try:
+    response = requests.post(webhook_url, json=payload)
 
-# Print the status code of the response
-print(response.status_code)
+    # Check the response status code
+    if response.status_code == 204:
+        print("Message sent successfully!")
+    else:
+        print(f"Error sending message. Response code: {response.status_code}")
+except Exception as e:
+    print(f"Error sending message: {e}")
+
