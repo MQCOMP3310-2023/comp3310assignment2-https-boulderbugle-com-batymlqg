@@ -1,0 +1,28 @@
+name: Push Webhook
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  send_message:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Copy id.txt and token.txt
+        run: |
+          mkdir -p .github/workflows
+          cp id.txt .github/workflows/
+          cp token.txt .github/workflows/
+
+      - name: Send Discord message
+        run: python .github/workflows/send_message.py
+        env:
+          WEBHOOK_ID: ${{ secrets.WEBHOOK_ID }}
+          WEBHOOK_TOKEN: ${{ secrets.WEBHOOK_TOKEN }}
+
