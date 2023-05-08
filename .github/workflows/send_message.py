@@ -1,5 +1,9 @@
 import requests
 
+import os
+print("hello world\n")
+print(os.getcwd())
+
 # Read the webhook ID and token from id.txt and token.txt respectively
 with open("id.txt", "r") as id_file, open("token.txt", "r") as token_file:
     webhook_id = id_file.read().strip()
