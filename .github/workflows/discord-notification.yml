@@ -1,0 +1,35 @@
+name: Discord Notification
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  sendNotification:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+
+    - name: Install Discord Webhook module
+      run: pip install discord-webhook
+
+    - name: Read Discord Webhook ID
+      run: echo ${{ secrets.DISCORD_WEBHOOK_ID }} > id.txt
+
+    - name: Read Discord Webhook Token
+      run: echo ${{ secrets.DISCORD_WEBHOOK_TOKEN }} > token.txt
+
+    - name: Send message to Discord
+      env:
+        DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/${{ secrets.DISCORD_WEBHOOK_ID }}/${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+        DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+      run: python send_message.py
