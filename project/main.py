@@ -87,12 +87,16 @@ def showMenu(restaurant_id):
             'key': api_key,
         }
 
+
         response = requests.get(search_url, params=params)
         response_json = response.json()
+        print(response)
 
         if 'items' in response_json and len(response_json['items']) > 0:
             image_url = response_json['items'][0]['link']
             image_urls[item.id] = image_url
+            print("Got an image")
+            print(image_url)
         else:
             print(f"No image found for item {item.name}")
 
