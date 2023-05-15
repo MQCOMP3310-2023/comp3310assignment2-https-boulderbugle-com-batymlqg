@@ -1,4 +1,8 @@
 from . import db
+import requests
+from bs4 import BeautifulSoup
+from sqlalchemy.orm import synonym_for
+
 
 class Restaurant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -13,13 +17,15 @@ class Restaurant(db.Model):
        }
  
 class MenuItem(db.Model):
-    name = db.Column(db.String(80), nullable = False)
-    id = db.Column(db.Integer, primary_key = True)
+    __tablename__ = 'menu_item'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(250))
     price = db.Column(db.String(8))
     course = db.Column(db.String(250))
-    restaurant_id = db.Column(db.Integer,db.ForeignKey('restaurant.id'))
-    restaurant = db.    relationship(Restaurant)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurant.id'))
+    restaurant = db.relationship(Restaurant)
+    
 
     @property
     def serialize(self):

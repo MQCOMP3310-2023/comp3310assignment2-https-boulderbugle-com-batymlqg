@@ -2,7 +2,9 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from .models import Restaurant, MenuItem
 from sqlalchemy import asc
 from . import db
+import requests
 import logging
+import os
 
 main = Blueprint('main', __name__)
 
@@ -51,12 +53,54 @@ def deleteRestaurant(restaurant_id):
     return render_template('deleteRestaurant.html',restaurant = restaurantToDelete)
 
 #Show a restaurant menu
+# @main.route('/restaurant/<int:restaurant_id>/')
+# @main.route('/restaurant/<int:restaurant_id>/menu/')
+# def showMenu(restaurant_id):
+#     restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
+#     items = db.session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()
+#     for item in items:
+#        print(item.description)
+#     return render_template('menu.html', items = items, restaurant = restaurant)
+
 @main.route('/restaurant/<int:restaurant_id>/')
 @main.route('/restaurant/<int:restaurant_id>/menu/')
 def showMenu(restaurant_id):
-    restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
-    items = db.session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()
-    return render_template('menu.html', items = items, restaurant = restaurant)
+    restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
+    items = db.session.query(MenuItem).filter_by(restaurant_id=restaurant_id).all()
+    image_urls = {}
+    
+    api_key_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'google_search_keys', 'api_key.txt')
+    with open(api_key_file, 'r') as f:
+        api_key = f.read().strip()
+
+    cx_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'google_search_keys', 'eng_id.txt')
+    with open(cx_file, 'r') as f:
+        cx_key = f.read().strip()
+
+    for item in items:
+        search_url = 'https://www.googleapis.com/customsearch/v1'
+        params = {
+            'q': item.name,
+            'num': 1,
+            'searchType': 'image',
+            'cx': cx_key,
+            'key': api_key,
+        }
+
+        response = requests.get(search_url, params=params)
+        response_json = response.json()
+
+        if 'items' in response_json and len(response_json['items']) > 0:
+            image_url = response_json['items'][0]['link']
+            image_urls[item.id] = image_url
+        else:
+            print(f"No image found for item {item.name}")
+
+    if not image_urls:
+        print("No images found for any items")
+
+    return render_template('menu.html', items=items, restaurant=restaurant, image_urls=image_urls)
+
      
 #Create a new menu item
 @main.route('/restaurant/<int:restaurant_id>/menu/new/',methods=['GET','POST'])
@@ -108,17 +152,15 @@ def deleteMenuItem(restaurant_id,menu_id):
         return render_template('deleteMenuItem.html', item = itemToDelete)
 
 #Search for a menu item
-@main.route('/restaurant/search/')
-def searchRestaurants():
-    logging.basicConfig(filename='./logging/app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
-    logging.debug("abc")
-    query = request.args.get('q', '')
-    if query:
-        restaurants = db.session.query(Restaurant).filter(Restaurant.name.like('%{}%'.format(query))).order_by(asc(Restaurant.name)).all()
-    else:
-        restaurants = []
-    print(restaurants)
-    print("Hello world\n")
-    print(query)
-    return render_template('search.html', restaurants=restaurants, query=query)
+# @main.route('/search/<int:restaurant_id>', methods=['GET', 'POST'])
+# def search_restaurants(restaurant_id):
+#     print(restaurant_id)
+#     query = request.args.get('q', '')
+#     if query:
+#         restaurants = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
+#     else:
+#         restaurants = db.session.query(Restaurant).filter_by(id=restaurant_id).all()
+#     return render_template('search.html', restaurants=restaurants, restaurant_id=restaurant_id)
+
+
 

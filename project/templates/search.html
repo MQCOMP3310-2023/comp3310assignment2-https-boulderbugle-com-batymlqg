@@ -5,7 +5,7 @@
 <div class="row top-menu">
   <div class="col-md-10"></div>
   <div class="col-md-2 text-right">
-    <form class="form-inline my-2 my-lg-0" action="{{ url_for('search') }}" method="get">
+    <form class="form-inline my-2 my-lg-0" action="{{ url_for('main.search_restaurants', restaurant_id=restaurant_id) }}" method="get">
       <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="query">
       <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
     </form>
