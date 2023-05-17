@@ -158,13 +158,31 @@ def deleteMenuItem(restaurant_id,menu_id):
 def search_menu_items(restaurant_id):
     print("hello")
     query = request.args.get('q', '')
+    print("query is:")
+    print(query)
     if query:
         items = db.session.query(MenuItem).filter(MenuItem.name.ilike(f'%{query}%')).all()
+        print(items)
         restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
-        return render_template('search_results.html', items=items, restaurant=restaurant, query=query)
-    else:
-        flash('Please enter a search query')
+        print(restaurant)
         return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
+    else:
+        return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
+
+@main.route('/search/', methods=['GET', 'POST'])
+def search_restaurant():
+    query = request.args.get('q', '')
+    print("Query:", query)  # Print the query for debugging purposes
+    if query:
+        restaurant = db.session.query(Restaurant).filter(Restaurant.name.ilike(f'%{query}%')).first()
+        if restaurant:
+            restaurant_id = restaurant.id
+            print(restaurant_id)
+            items = db.session.query(MenuItem).filter(MenuItem.name.ilike(f'%{restaurant_id}%')).all()
+            print(items)
+            return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
+    flash('Please enter a valid search query')
+    return redirect(url_for('main.showRestaurants'))
 
 
 
