@@ -87,7 +87,6 @@ def showMenu(restaurant_id):
             'key': api_key,
         }
 
-
         response = requests.get(search_url, params=params)
         response_json = response.json()
         print(response)
@@ -155,16 +154,17 @@ def deleteMenuItem(restaurant_id,menu_id):
     else:
         return render_template('deleteMenuItem.html', item = itemToDelete)
 
-#Search for a menu item
-# @main.route('/search/<int:restaurant_id>', methods=['GET', 'POST'])
-# def search_restaurants(restaurant_id):
-#     print(restaurant_id)
-#     query = request.args.get('q', '')
-#     if query:
-#         restaurants = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
-#     else:
-#         restaurants = db.session.query(Restaurant).filter_by(id=restaurant_id).all()
-#     return render_template('search.html', restaurants=restaurants, restaurant_id=restaurant_id)
+@main.route('/search/<int:restaurant_id>', methods=['GET', 'POST'])
+def search_menu_items(restaurant_id):
+    print("hello")
+    query = request.args.get('q', '')
+    if query:
+        items = db.session.query(MenuItem).filter(MenuItem.name.ilike(f'%{query}%')).all()
+        restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
+        return render_template('search_results.html', items=items, restaurant=restaurant, query=query)
+    else:
+        flash('Please enter a search query')
+        return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
 
 
 
