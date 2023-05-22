@@ -1,15 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
-		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
-	</head>
-	<body>
-		<div class="container">
-			{% include "header.html" %}
-			{% block content %}
-			{% endblock %}
-		</div>
-	</body>
+  <head>
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row top-menu">
+        <div class="col-md-6">
+          <form action="{{ url_for('main.search_restaurant') }}" method="GET">
+            <div class="input-group">
+              <input type="text" name="q" class="form-control" placeholder="Search for a restaurant">
+              <span class="input-group-btn">
+                <button class="btn btn-primary" type="submit">Search</button>
+              </span>
+            </div>
+          </form>
+        </div>
+        <div class="col-md-6 text-right">
+          <p>Login Link will go Here</p>
+        </div>
+      </div>
+      {% block content %}
+      {% endblock %}
+    </div>
+  </body>
 </html>
