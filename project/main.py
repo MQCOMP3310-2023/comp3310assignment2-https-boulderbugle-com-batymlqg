@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from .models import Restaurant, MenuItem
 from sqlalchemy import asc
+import speech_recognition as sr
 from . import db
 import requests
 import logging
 import os
+import wave
 
 main = Blueprint('main', __name__)
 
@@ -83,8 +85,8 @@ def showMenu(restaurant_id):
             'q': item.name,
             'num': 1,
             'searchType': 'image',
-            'cx': cx_key,
-            'key': api_key,
+            'cx': 1234,
+            'key': 1234,
         }
 
         response = requests.get(search_url, params=params)
@@ -185,4 +187,177 @@ def search_restaurant():
     return redirect(url_for('main.showRestaurants'))
 
 
+# import wave
 
+# @main.route("/speech", methods=["GET", "POST"])
+# def speech():
+#     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'abcdefg.wav')
+#     audio_data, sample_width, num_channels, frame_rate = read_wav_file(file_path)
+
+#     print("Sample width:", sample_width)
+#     print("Number of channels:", num_channels)
+#     print("Frame rate:", frame_rate)
+
+#     return "Speech processing completed"
+
+# def read_wav_file(file_path):
+#     with wave.open(file_path, 'rb') as wav_file:
+#         sample_width = wav_file.getsampwidth()
+#         num_channels = wav_file.getnchannels()
+#         frame_rate = wav_file.getframerate()
+#         num_frames = wav_file.getnframes()
+
+#         audio_data = wav_file.readframes(num_frames)
+
+#     return audio_data, sample_width, num_channels, frame_rate
+
+# import os
+# import wave
+# from google.cloud import speech
+# from google.cloud.speech_v1p1beta1.services.speech import SpeechClient
+
+
+# os.environ["GOOGLE_API_KEY"] = "AIzaSyAPi9x5nSSVnCED8Khehgt3dBA5uDjmD8Q"
+
+# @main.route("/speech", methods=["GET", "POST"])
+# def speech():
+#     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'abcdefg.wav')
+#     audio_data, sample_width, num_channels, frame_rate = read_wav_file(file_path)
+
+#     print("Sample width:", sample_width)
+#     print("Number of channels:", num_channels)
+#     print("Frame rate:", frame_rate)
+
+#     transcribed_text = transcribe_audio(audio_data, sample_width, frame_rate)
+
+#     print("Transcribed text:", transcribed_text)
+
+#     return "Speech processing completed"
+
+# def read_wav_file(file_path):
+#     with wave.open(file_path, 'rb') as wav_file:
+#         sample_width = wav_file.getsampwidth()
+#         num_channels = wav_file.getnchannels()
+#         frame_rate = wav_file.getframerate()
+#         num_frames = wav_file.getnframes()
+
+#         audio_data = wav_file.readframes(num_frames)
+
+#     return audio_data, sample_width, num_channels, frame_rate
+
+# def transcribe_audio(audio_data, sample_width, frame_rate):
+#     client = speech.SpeechClient()
+
+#     config = {
+#         "encoding": speech.RecognitionConfig.AudioEncoding.LINEAR16,
+#         "sample_rate_hertz": frame_rate,
+#         "language_code": "en-US",
+#     }
+
+#     audio = {"content": audio_data}
+
+#     response = client.recognize(config=config, audio=audio)
+
+#     transcribed_text = ""
+#     for result in response.results:
+#         transcribed_text += result.alternatives[0].transcript
+
+#     return transcribed_text
+
+import os
+import wave
+from google.cloud import speech_v1p1beta1 as speech
+from google.cloud.speech_v1p1beta1 import enums
+from google.cloud.speech_v1p1beta1 import types
+from google.oauth2 import service_account
+
+# Set the path to your JSON credentials file
+credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'google_search_keys', 'food-api-386807-89a88d306a8d.json')
+
+# Create a credentials object from the JSON file
+credentials = service_account.Credentials.from_service_account_file(credentials_path)
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
+
+@main.route("/speech", methods=["GET", "POST"])
+def speech():
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'UrbanBurgerAI.wav')
+    audio_data, sample_width, num_channels, frame_rate = read_wav_file(file_path)
+
+    print("Sample width:", sample_width)
+    print("Number of channels:", num_channels)
+    print("Frame rate:", frame_rate)
+
+    transcribed_text = transcribe_audio(audio_data, sample_width, frame_rate)
+
+    print("Transcribed text:", transcribed_text)
+
+    return "Speech processing completed"
+
+def read_wav_file(file_path):
+    with wave.open(file_path, 'rb') as wav_file:
+        sample_width = wav_file.getsampwidth()
+        num_channels = wav_file.getnchannels()
+        frame_rate = wav_file.getframerate()
+        num_frames = wav_file.getnframes()
+
+        audio_data = wav_file.readframes(num_frames)
+
+    return audio_data, sample_width, num_channels, frame_rate
+
+from google.cloud import speech_v1p1beta1
+
+def transcribe_audio(audio_data, sample_width, frame_rate):
+    client = speech_v1p1beta1.SpeechClient(credentials=credentials)
+
+    config = {
+        "encoding": enums.RecognitionConfig.AudioEncoding.LINEAR16,
+        "sample_rate_hertz": frame_rate,
+        "language_code": "en-US",
+    }
+
+    audio = {"content": audio_data}
+
+    response = client.recognize(config=config, audio=audio)
+
+    print("Response:", response)  # Debug print for response object
+
+    transcribed_text = ""
+    for result in response.results:
+        if result.alternatives:
+            transcribed_text += result.alternatives[0].transcript
+
+    print("Transcribed text:", transcribed_text)
+
+    return transcribed_text
+
+
+# def index():
+#     transcript = ""
+#     if request.method == "POST":
+#         print("FORM DATA RECEIVED")
+
+#         if "file" not in request.files:
+#             return redirect(request.url)
+
+#         file = request.files["file"]
+#         if file.filename == "":
+#             return redirect(request.url)
+
+#         if file:
+#             recognizer = sr.Recognizer()
+#             audioFile = sr.AudioFile(file)
+#             with audioFile as source:
+#                 data = recognizer.record(source)
+#             transcript = recognizer.recognize_google(data, key=None)
+
+#         if query:
+#             restaurant = db.session.query(Restaurant).filter(Restaurant.name.ilike(f'%{query}%')).first()
+#             if restaurant:
+#                 restaurant_id = restaurant.id
+#                 print(restaurant_id)
+#                 items = db.session.query(MenuItem).filter(MenuItem.name.ilike(f'%{restaurant_id}%')).all()
+#                 print(items)
+#                 return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
+#     flash('Bro you fucked up')
+#     return render_template('main.showRestraunts', transcript=transcript)
