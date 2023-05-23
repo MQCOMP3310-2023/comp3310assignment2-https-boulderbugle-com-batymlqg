@@ -6,6 +6,16 @@ from . import db
 
 main = Blueprint('main', __name__)
 
+#Show/Process login
+@main.route('/login')
+def login():
+    return render_template('login.html')
+
+#Show/Process login
+@main.route('/signup')
+def signup():
+    return render_template('signup.html')
+
 #Show all restaurants
 @main.route('/')
 @main.route('/restaurant/')
