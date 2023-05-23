@@ -32,3 +32,7 @@ class MenuItem(db.Model):
            'course'     : self.course,
        }
 
+class Users(db.Model):
+    id = db.Column(db.Interger, primary_key = True)
+    email = db.Column(db.String(80), nullable = False)
+    password = db.Column(db.String(70), nullable = False)
