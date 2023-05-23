@@ -11,7 +11,7 @@ main = Blueprint('main', __name__)
 def login():
     return render_template('login.html')
 
-#Show/Process login
+#Show/Process signup
 @main.route('/signup')
 def signup():
     return render_template('signup.html')
