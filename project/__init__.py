@@ -13,6 +13,10 @@ def create_app():
     db.init_app(app)
 
     # blueprint for auth routes in our app
+    from .auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint)
+    
+    # blueprint for JSON APIs to view Restaurant Information routes in our app
     from .json import json as json_blueprint
     app.register_blueprint(json_blueprint)
 

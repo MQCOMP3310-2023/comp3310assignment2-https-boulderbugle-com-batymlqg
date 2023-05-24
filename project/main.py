@@ -1,20 +1,20 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from .models import Restaurant, MenuItem
 from sqlalchemy import asc
-from .models import User
 from . import db
+
 
 main = Blueprint('main', __name__)
 
-#Show/Process login
-@main.route('/login')
-def login():
-    return render_template('login.html')
+# #Show/Process login
+# @main.route('/login')
+# def login():
+#     return render_template('login.html')
 
-#Show/Process signup
-@main.route('/signup')
-def signup():
-    return render_template('signup.html')
+# #Show/Process signup
+# @main.route('/signup')
+# def signup():
+#     return render_template('signup.html')
 
 #Show all restaurants
 @main.route('/')
