@@ -13,7 +13,7 @@ main = Blueprint('main', __name__)
 #Since this route is decorated with @login_required decorator, we could access all of the current_user
 #attributes. we set name=current_user.name to be able to generate the user's name to the profile page
 def profile():
-    return render_template('profile.html', name=current_user.name)
+    return render_template('profile.html', name=current_user.name, role=current_user.role)
 
 #Show all restaurants
 @main.route('/')
