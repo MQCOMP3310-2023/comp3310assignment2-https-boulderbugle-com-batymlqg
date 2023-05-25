@@ -6,6 +6,7 @@ from . import db
 
 
 main = Blueprint('main', __name__)
+
 #Show the profile page
 @main.route('/profile')
 @login_required
@@ -47,7 +48,6 @@ def editRestaurant(restaurant_id):
   else:
     return render_template('editRestaurant.html', restaurant = editedRestaurant)
 
-
 #Delete a restaurant
 @main.route('/restaurant/<int:restaurant_id>/delete/', methods = ['GET','POST'])
 @login_required
@@ -69,8 +69,6 @@ def showMenu(restaurant_id):
     items = db.session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()
     return render_template('menu.html', items = items, restaurant = restaurant)
      
-
-
 #Create a new menu item
 @main.route('/restaurant/<int:restaurant_id>/menu/new/',methods=['GET','POST'])
 @login_required
@@ -107,7 +105,6 @@ def editMenuItem(restaurant_id, menu_id):
         return redirect(url_for('main.showMenu', restaurant_id = restaurant_id))
     else:
         return render_template('editmenuitem.html', restaurant_id = restaurant_id, menu_id = menu_id, item = editedItem)
-
 
 #Delete a menu item
 @main.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/delete', methods = ['GET','POST'])
