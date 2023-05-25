@@ -20,15 +20,6 @@ from flask import jsonify
 
 main = Blueprint('main', __name__)
 
-@main.route('/login')
-def login():
-    return render_template('login.html')
-
-#Show/Process signup
-@main.route('/signup')
-def signup():
-    return render_template('signup.html')
-
 @main.route('/')
 @main.route('/restaurant/')
 def showRestaurants():
