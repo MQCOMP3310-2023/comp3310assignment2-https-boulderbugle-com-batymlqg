@@ -3,7 +3,7 @@
         <div class="col-md-6">
             <form action="{{ url_for('main.search_restaurant') }}" method="GET">
                 <div class="input-group">
-                    <input type="text" name="q" class="form-control" placeholder="Search for a restaurant">
+                    <input type="text" id="search-input" name="q" class="form-control" placeholder="Search for a restaurant">
                     <span class="input-group-btn">
                         <button class="btn btn-primary" type="submit">Search</button>
                     </span>

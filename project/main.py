@@ -14,7 +14,8 @@ from google.cloud.speech_v1p1beta1 import types
 from google.oauth2 import service_account
 from nltk.corpus import wordnet
 from sqlalchemy import or_
-
+from collections import Counter
+from flask import jsonify
 
 main = Blueprint('main', __name__)
 
@@ -22,23 +23,20 @@ main = Blueprint('main', __name__)
 @main.route('/restaurant/')
 def showRestaurants():
     restaurants = db.session.query(Restaurant).order_by(asc(Restaurant.name))
-    show_search_bar = True  # Set the value based on your logic
-
+    show_search_bar = True
     return render_template('restaurants.html', restaurants=restaurants, show_search_bar=show_search_bar)
 
-#Create a new restaurant
 @main.route('/restaurant/new/', methods=['GET','POST'])
 def newRestaurant():
-  if request.method == 'POST':
-      newRestaurant = Restaurant(name = request.form['name'])
-      db.session.add(newRestaurant)
-      flash('New Restaurant %s Successfully Created' % newRestaurant.name)
-      db.session.commit()
-      return redirect(url_for('main.showRestaurants'))
-  else:
-      return render_template('newRestaurant.html')
+    if request.method == 'POST':
+        newRestaurant = Restaurant(name=request.form['name'])
+        db.session.add(newRestaurant)
+        flash('New Restaurant %s Successfully Created' % newRestaurant.name)
+        db.session.commit()
+        return redirect(url_for('main.showRestaurants'))
+    else:
+        return render_template('newRestaurant.html')
 
-#Edit a restaurant
 @main.route('/restaurant/<int:restaurant_id>/edit/', methods = ['GET', 'POST'])
 def editRestaurant(restaurant_id):
   editedRestaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
@@ -50,8 +48,6 @@ def editRestaurant(restaurant_id):
   else:
     return render_template('editRestaurant.html', restaurant = editedRestaurant)
 
-
-#Delete a restaurant
 @main.route('/restaurant/<int:restaurant_id>/delete/', methods = ['GET','POST'])
 def deleteRestaurant(restaurant_id):
   restaurantToDelete = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
@@ -63,59 +59,15 @@ def deleteRestaurant(restaurant_id):
   else:
     return render_template('deleteRestaurant.html',restaurant = restaurantToDelete)
 
-# @main.route('/restaurant/<int:restaurant_id>/')
-# @main.route('/restaurant/<int:restaurant_id>/menu/')
-# def showMenu(restaurant_id):
-#     restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
-#     items = db.session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()
-#     for item in items:
-#        print(item.description)
-#     return render_template('menu.html', items = items, restaurant = restaurant)
-
 @main.route('/restaurant/<int:restaurant_id>/')
 @main.route('/restaurant/<int:restaurant_id>/menu/')
 def showMenu(restaurant_id):
-    restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
-    items = db.session.query(MenuItem).filter_by(restaurant_id=restaurant_id).all()
-    image_urls = {}
-    
-    api_key_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'google_search_keys', 'api_key.txt')
-    with open(api_key_file, 'r') as f:
-        api_key = f.read().strip()
-
-    cx_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'google_search_keys', 'eng_id.txt')
-    with open(cx_file, 'r') as f:
-        cx_key = f.read().strip()
-
+    restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
+    items = db.session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()
     for item in items:
-        search_url = 'https://www.googleapis.com/customsearch/v1'
-        params = {
-            'q': item.name,
-            'num': 1,
-            'searchType': 'image',
-            'cx': 1234,
-            'key': 1234,
-        }
+       print(item.description)
+    return render_template('menu.html', items = items, restaurant = restaurant)
 
-        response = requests.get(search_url, params=params)
-        response_json = response.json()
-        print(response)
-
-        if 'items' in response_json and len(response_json['items']) > 0:
-            image_url = response_json['items'][0]['link']
-            image_urls[item.id] = image_url
-            print("Got an image")
-            print(image_url)
-        else:
-            print(f"No image found for item {item.name}")
-
-    if not image_urls:
-        print("No images found for any items")
-
-    return render_template('menu.html', items=items, restaurant=restaurant, image_urls=image_urls)
-
-     
-#Create a new menu item
 @main.route('/restaurant/<int:restaurant_id>/menu/new/',methods=['GET','POST'])
 def newMenuItem(restaurant_id):
   restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
@@ -128,7 +80,6 @@ def newMenuItem(restaurant_id):
   else:
       return render_template('newmenuitem.html', restaurant_id = restaurant_id)
 
-#Edit a menu item
 @main.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/edit', methods=['GET','POST'])
 def editMenuItem(restaurant_id, menu_id):
 
@@ -150,8 +101,6 @@ def editMenuItem(restaurant_id, menu_id):
     else:
         return render_template('editmenuitem.html', restaurant_id = restaurant_id, menu_id = menu_id, item = editedItem)
 
-
-#Delete a menu item
 @main.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/delete', methods = ['GET','POST'])
 def deleteMenuItem(restaurant_id,menu_id):
     restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
@@ -179,114 +128,33 @@ def search_menu_items(restaurant_id):
     else:
         return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
 
-# @main.route('/search/', methods=['GET', 'POST'])
-# def search_restaurant():
-#     query = request.args.get('q', '')
-#     print(query)
-#     if query:
-#         word_list = create_word_list(query)
-#         print("Word List:", word_list)
-
-#         conditions = [Restaurant.name.ilike(f'%{word}%') for word in word_list]
-#         conditions += [MenuItem.name.ilike(f'%{word}%') for word in word_list]
-#         conditions += [MenuItem.description.ilike(f'%{word}%') for word in word_list]
-#         query = db.session.query(Restaurant).filter(or_(*conditions))
-#         print("Query:", conditions)
-
-#         restaurant = query.all()
-#         print(restaurant)
-#         restaurant = query.all()
-#         print(restaurant)
-#         if restaurant:
-#             restaurant_id = restaurant.id
-#             print("Restaurant ID:", restaurant_id)
-#             items = db.session.query(MenuItem).filter(MenuItem.restaurant_id == restaurant_id).all()
-#             print("Items:", items)
-#             return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
-#     flash('Please enter a valid search query')
-#     return redirect(url_for('main.showRestaurants'))
-
-from collections import Counter
-
 @main.route('/search/', methods=['GET', 'POST'])
 def search_restaurant():
     query = request.args.get('q', '')
-    print(query)
     if query:
         word_list = create_word_list(query)
-        print("Word List:", word_list)
 
         conditions = [Restaurant.name.ilike(f'%{word}%') for word in word_list]
         conditions += [MenuItem.name.ilike(f'%{word}%') for word in word_list]
         conditions += [MenuItem.description.ilike(f'%{word}%') for word in word_list]
         query = db.session.query(Restaurant).filter(or_(*conditions))
-        print(query.params)
-        print("Query:", conditions)
 
         rows = query.all()
-        print("Rows:")
-        for row in rows:
-            print(row)
 
         restaurant_counter = Counter(row.name for row in rows)
         most_common = restaurant_counter.most_common()
-        print("Most Common Occurrences:")
-        for name, count in most_common:
-            print(f"{name}: {count}")
 
         word_counter = Counter(word for row in rows for word in word_list)
         word_counts = word_counter.items()
-        print("Word Counts:")
-        for word, count in word_counts:
-            print(f"{word}: {count}")
 
         if rows:
             restaurant_id = rows[0].id
-            print("Restaurant ID:", restaurant_id)
+            restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
             items = db.session.query(MenuItem).filter(MenuItem.restaurant_id == restaurant_id).all()
-            print("Items:", items)
-            return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
-    
+            return render_template('menu.html', items=items, restaurant=restaurant)
+
     flash('Please enter a valid search query')
     return redirect(url_for('main.showRestaurants'))
-
-
-# @main.route('/search/', methods=['GET', 'POST'])
-# def search_restaurant():
-#     query = request.args.get('q', '')
-#     print(query)
-#     if query:
-#         word_list = create_word_list(query)
-#         print("Word List:", word_list)
-
-#         conditions = [Restaurant.name.ilike(f'%{word}%') for word in word_list]
-#         conditions += [MenuItem.name.ilike(f'%{word}%') for word in word_list]
-#         conditions += [MenuItem.description.ilike(f'%{word}%') for word in word_list]
-#         query = db.session.query(Restaurant).filter(or_(*conditions))
-#         print(query.params)
-#         print("Query:", conditions)
-
-#         rows = query.all()
-#         print("Rows:")
-#         for row in rows:
-#             print(row)
-
-#         restaurant_counter = Counter(row.name for row in rows)
-#         most_common = restaurant_counter.most_common()
-#         print("Most Common Occurrences:")
-#         for name, count in most_common:
-#             print(f"{name}: {count}")
-
-#         if rows:
-#             restaurant_id = rows[0].id
-#             print("Restaurant ID:", restaurant_id)
-#             items = db.session.query(MenuItem).filter(MenuItem.restaurant_id == restaurant_id).all()
-#             print("Items:", items)
-#             return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
-    
-#     flash('Please enter a valid search query')
-#     return redirect(url_for('main.showRestaurants'))
-
 
 def create_word_list(query):
     word_list = query.split()
@@ -304,86 +172,7 @@ def create_word_list(query):
     word_list = list(set(word_list))
     return word_list
 
-
-
-# import wave
-
-# @main.route("/speech", methods=["GET", "POST"])
-# def speech():
-#     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'abcdefg.wav')
-#     audio_data, sample_width, num_channels, frame_rate = read_wav_file(file_path)
-
-#     print("Sample width:", sample_width)
-#     print("Number of channels:", num_channels)
-#     print("Frame rate:", frame_rate)
-
-#     return "Speech processing completed"
-
-# def read_wav_file(file_path):
-#     with wave.open(file_path, 'rb') as wav_file:
-#         sample_width = wav_file.getsampwidth()
-#         num_channels = wav_file.getnchannels()
-#         frame_rate = wav_file.getframerate()
-#         num_frames = wav_file.getnframes()
-
-#         audio_data = wav_file.readframes(num_frames)
-
-#     return audio_data, sample_width, num_channels, frame_rate
-
-# import os
-# import wave
-# from google.cloud import speech
-# from google.cloud.speech_v1p1beta1.services.speech import SpeechClient
-
-
-# os.environ["GOOGLE_API_KEY"] = "AIzaSyAPi9x5nSSVnCED8Khehgt3dBA5uDjmD8Q"
-
-# @main.route("/speech", methods=["GET", "POST"])
-# def speech():
-#     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'abcdefg.wav')
-#     audio_data, sample_width, num_channels, frame_rate = read_wav_file(file_path)
-
-#     print("Sample width:", sample_width)
-#     print("Number of channels:", num_channels)
-#     print("Frame rate:", frame_rate)
-
-#     transcribed_text = transcribe_audio(audio_data, sample_width, frame_rate)
-
-#     print("Transcribed text:", transcribed_text)
-
-#     return "Speech processing completed"
-
-# def read_wav_file(file_path):
-#     with wave.open(file_path, 'rb') as wav_file:
-#         sample_width = wav_file.getsampwidth()
-#         num_channels = wav_file.getnchannels()
-#         frame_rate = wav_file.getframerate()
-#         num_frames = wav_file.getnframes()
-
-#         audio_data = wav_file.readframes(num_frames)
-
-#     return audio_data, sample_width, num_channels, frame_rate
-
-# def transcribe_audio(audio_data, sample_width, frame_rate):
-#     client = speech.SpeechClient()
-
-#     config = {
-#         "encoding": speech.RecognitionConfig.AudioEncoding.LINEAR16,
-#         "sample_rate_hertz": frame_rate,
-#         "language_code": "en-US",
-#     }
-
-#     audio = {"content": audio_data}
-
-#     response = client.recognize(config=config, audio=audio)
-
-#     transcribed_text = ""
-#     for result in response.results:
-#         transcribed_text += result.alternatives[0].transcript
-
-#     return transcribed_text
-
-credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'google_search_keys', 'food-api-386807-89a88d306a8d.json')
+credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'google_search_keys', 'food-api-386807-d60daa8e2a3f.json')
 
 credentials = service_account.Credentials.from_service_account_file(credentials_path)
 
@@ -391,8 +180,8 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 
 @main.route("/speech", methods=["GET", "POST"])
 def speech():
-    #file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'PandaGarden.wav')
-    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'AAD.wav')
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'PandaGarden.wav')
+    #file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'AAD.wav')
     audio_data, sample_width, num_channels, frame_rate = read_wav_file(file_path)
 
     print("Sample width:", sample_width)
@@ -486,8 +275,6 @@ def transcribe_audio(audio_data, sample_width, frame_rate):
     print("Transcribed text:", transcribed_text)
 
     return transcribed_text
-
-
 
 def create_word_list(transcribed_text):
     word_list = transcribed_text.split()
