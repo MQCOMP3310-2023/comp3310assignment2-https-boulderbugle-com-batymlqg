@@ -1,20 +1,18 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask_login import login_required, current_user
 from .models import Restaurant, MenuItem
 from sqlalchemy import asc
 from . import db
 
 
 main = Blueprint('main', __name__)
-
-# #Show/Process login
-# @main.route('/login')
-# def login():
-#     return render_template('login.html')
-
-# #Show/Process signup
-# @main.route('/signup')
-# def signup():
-#     return render_template('signup.html')
+#Show the profile page
+@main.route('/profile')
+@login_required
+#Since this route is decorated with @login_required decorator, we could access all of the current_user
+#attributes. we set name=current_user.name to be able to generate the user's name to the profile page
+def profile():
+    return render_template('profile.html', name=current_user.name)
 
 #Show all restaurants
 @main.route('/')
