@@ -9,7 +9,14 @@
 			<h1>{{ restaurant.name }}
 			<figure class="creator">
 				<img src="{{ url_for('static', filename='blank_user.gif') }}">
-				<figcaption>Menu creator's name goes here</figcaption>
+				<figcaption>
+					{% if current_user.is_authenticated and current_user.id == restaurant.owner.id %}
+                    	This is your restaurant's menu
+                	{% else %}
+						<!-- The application wont throw and error if the value of owner.id is Null or None -->
+                    	The creator of this menu is {{ restaurant.owner.name if restaurant.owner.name else 'Unknown' }}
+                	{% endif %}
+				</figcaption>
 			</figure>
 			</h1>
 

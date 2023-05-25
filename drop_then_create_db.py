@@ -1,4 +1,4 @@
-from project import db, create_app
+from project import db, create_app, models
 
 if __name__ == '__main__':
   app = create_app()
