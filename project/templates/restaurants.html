@@ -32,6 +32,8 @@
 	
 	<div class="row padding-top padding-bottom">
 		<div class="col-md-1"></div>
+		{% if current_user.is_authenticated %} 
+		<!-- Only logged in user can see the adding restaurant feature-->
 		<div class="col-md-10 padding-none">
 			<a href="{{url_for('main.newRestaurant')}}">
 				<button class="btn btn-default" id="new-restaurant">
@@ -39,6 +41,7 @@
 				</button>
 			</a>
 		</div>
+		{% endif %}
 		<div class="col-md-1"></div>
 	</div>
 	{% for restaurant in restaurants %}
