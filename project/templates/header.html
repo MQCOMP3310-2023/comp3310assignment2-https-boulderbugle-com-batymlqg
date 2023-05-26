@@ -18,7 +18,7 @@
 			<a href="/login">Login</a>
 		{% endif %}
 		{% if current_user.is_authenticated %}
-			<p> Welcome! </p> <!-- TODO: Personalise -->
+			<a href="/profile">Your Profile</a>
 			<a href="/logout"> Logout</a>
 		{% endif %}
 		

@@ -1,10 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Flask, Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, login_required, logout_user
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_bcrypt import Bcrypt
 from .models import User
 from . import db
 
 auth = Blueprint('auth', __name__)
+
+app = Flask(__name__)
+bcrypt = Bcrypt(app)
 
 @auth.route('/login')
 def login():
@@ -20,13 +23,14 @@ def login_post():
 
     # check if the user actually exists
     # take the user-supplied password and compare it with the stored password
-    if not user or not check_password_hash(user.password,password):
+    if not user or not bcrypt.check_password_hash(user.password,password):
         flash('Please check your login details and try again.')
-        current_app.logger.warning("User login failed")
+        #current_app.logger.warning("User login failed")
         return redirect(url_for('auth.login')) # if the user doesn't exist or password is wrong, reload the page
 
     # if the above check passes, then we know the user has the right credentials
     login_user(user, remember=remember)
+    # return to the homepage
     return redirect("/")
 
 @auth.route('/signup')
@@ -47,7 +51,7 @@ def signup_post():
         return redirect(url_for('auth.signup'))
 
     # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-    new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
+    new_user = User(email=email, name=name, password=bcrypt.generate_password_hash(password), role='restaurant_owner')
 
     # add the new user to the database
     db.session.add(new_user)
@@ -58,5 +62,5 @@ def signup_post():
 @auth.route('/logout')
 @login_required
 def logout():
-    logout_user();
+    logout_user()
     return redirect("/")
