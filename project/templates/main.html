@@ -7,23 +7,9 @@
   </head>
   <body>
     <div class="container">
-      <div class="row top-menu">
-        <div class="col-md-6">
-          <form action="{{ url_for('main.search_restaurant') }}" method="GET">
-            <div class="input-group">
-              <input type="text" name="q" class="form-control" placeholder="Search for a restaurant">
-              <span class="input-group-btn">
-                <button class="btn btn-primary" type="submit">Search</button>
-              </span>
-            </div>
-          </form>
-        </div>
-        <div class="col-md-6 text-right">
-          <p>Login Link will go Here</p>
-        </div>
-      </div>
       {% block content %}
-      {% endblock %}
+			{% endblock %}
+      </div>
     </div>
   </body>
 </html>
