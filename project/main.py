@@ -18,173 +18,207 @@ from sqlalchemy import or_
 from collections import Counter
 from flask import jsonify
 import datetime
+import json
+from flask_cors import CORS
 
 
-main = Blueprint('main', __name__)
+main = Blueprint("main", __name__)
 
-#Show the profile page
-@main.route('/profile')
+CORS(main)
+
+# Show the profile page
+@main.route("/profile")
 @login_required
-#Since this route is decorated with @login_required decorator, we could access all of the current_user
-#attributes. we set name=current_user.name to be able to generate the user's name to the profile page
+# Since this route is decorated with @login_required decorator, we could access all of the current_user
+# attributes. we set name=current_user.name to be able to generate the user's name to the profile page
 def profile():
-    return render_template('profile.html', name=current_user.name, role=current_user.role)
+    return render_template(
+        "profile.html", name=current_user.name, role=current_user.role
+    )
 
-@main.route('/')
-@main.route('/restaurant/')
+
+@main.route("/")
+@main.route("/restaurant/")
 def showRestaurants():
     restaurants = db.session.query(Restaurant).order_by(asc(Restaurant.name))
     show_search_bar = True
-    return render_template('restaurants.html', restaurants=restaurants, show_search_bar=show_search_bar)
+    return render_template(
+        "restaurants.html", restaurants=restaurants, show_search_bar=show_search_bar
+    )
 
-@main.route('/restaurant/new/', methods=['GET','POST'])
+
+@main.route("/restaurant/new/", methods=["GET", "POST"])
 @login_required
 def newRestaurant():
-  if request.method == 'POST':
-      newRestaurant = Restaurant(name = request.form['name'], owner_id=current_user.id)
-      db.session.add(newRestaurant)
-      flash('New Restaurant %s Successfully Created' % newRestaurant.name)
-      db.session.commit()
-      return redirect(url_for('main.showRestaurants'))
-  else:
-      return render_template('newRestaurant.html')
+    if request.method == "POST":
+        newRestaurant = Restaurant(name=request.form["name"], owner_id=current_user.id)
+        db.session.add(newRestaurant)
+        flash("New Restaurant %s Successfully Created" % newRestaurant.name)
+        db.session.commit()
+        return redirect(url_for("main.showRestaurants"))
+    else:
+        return render_template("newRestaurant.html")
 
-@main.route('/restaurant/<int:restaurant_id>/edit/', methods = ['GET', 'POST'])
+
+@main.route("/restaurant/<int:restaurant_id>/edit/", methods=["GET", "POST"])
 @login_required
 def editRestaurant(restaurant_id):
-  editedRestaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
-  
-  #Check the access if it belongs to the owner of this restarant or it is the admin:
-  if current_user.id != editedRestaurant.owner_id and current_user.role != 'admin':
-    flash('You are not authorised to change the name of this restaurant')
-    return redirect(url_for('main.showRestaurants'))
-    
-  if request.method == 'POST':
-      if request.form['name']:
-        editedRestaurant.name = request.form['name']
-        db.session.commit()
-        flash('Restaurant Successfully Edited %s' % editedRestaurant.name)
-        return redirect(url_for('main.showRestaurants'))
-  else:
-    return render_template('editRestaurant.html', restaurant = editedRestaurant)
+    editedRestaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
 
-@main.route('/restaurant/<int:restaurant_id>/delete/', methods = ['GET','POST'])
+    # Check the access if it belongs to the owner of this restarant or it is the admin:
+    if current_user.id != editedRestaurant.owner_id and current_user.role != "admin":
+        flash("You are not authorised to change the name of this restaurant")
+        return redirect(url_for("main.showRestaurants"))
+
+    if request.method == "POST":
+        if request.form["name"]:
+            editedRestaurant.name = request.form["name"]
+            db.session.commit()
+            flash("Restaurant Successfully Edited %s" % editedRestaurant.name)
+            return redirect(url_for("main.showRestaurants"))
+    else:
+        return render_template("editRestaurant.html", restaurant=editedRestaurant)
+
+
+@main.route("/restaurant/<int:restaurant_id>/delete/", methods=["GET", "POST"])
 @login_required
 def deleteRestaurant(restaurant_id):
-  restaurantToDelete = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
+    restaurantToDelete = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
 
-  #Check the access if it belongs to the owner of this restarant or it is the admin:
-  if current_user.id != restaurantToDelete.owner_id and current_user.role != 'admin':
-    flash('You are not authorised to delete this restaurant')
-    return redirect(url_for('main.showRestaurants'))
+    # Check the access if it belongs to the owner of this restarant or it is the admin:
+    if current_user.id != restaurantToDelete.owner_id and current_user.role != "admin":
+        flash("You are not authorised to delete this restaurant")
+        return redirect(url_for("main.showRestaurants"))
 
-  if request.method == 'POST':
-    db.session.delete(restaurantToDelete)
-    flash('%s Successfully Deleted' % restaurantToDelete.name)
-    db.session.commit()
-    return redirect(url_for('main.showRestaurants', restaurant_id = restaurant_id))
-  else:
-    return render_template('deleteRestaurant.html',restaurant = restaurantToDelete)
+    if request.method == "POST":
+        db.session.delete(restaurantToDelete)
+        flash("%s Successfully Deleted" % restaurantToDelete.name)
+        db.session.commit()
+        return redirect(url_for("main.showRestaurants", restaurant_id=restaurant_id))
+    else:
+        return render_template("deleteRestaurant.html", restaurant=restaurantToDelete)
 
-@main.route('/restaurant/<int:restaurant_id>/')
-@main.route('/restaurant/<int:restaurant_id>/menu/')
+
+@main.route("/restaurant/<int:restaurant_id>/")
+@main.route("/restaurant/<int:restaurant_id>/menu/")
 def showMenu(restaurant_id):
-    restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
-    items = db.session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()
+    restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
+    items = db.session.query(MenuItem).filter_by(restaurant_id=restaurant_id).all()
     for item in items:
-       print(item.description)
-    return render_template('menu.html', items = items, restaurant = restaurant)
+        print(item.description)
+    return render_template("menu.html", items=items, restaurant=restaurant)
 
-@main.route('/restaurant/<int:restaurant_id>/menu/new/',methods=['GET','POST'])
+
+@main.route("/restaurant/<int:restaurant_id>/menu/new/", methods=["GET", "POST"])
 @login_required
 def newMenuItem(restaurant_id):
-  restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
+    restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
 
-  #Check the access if it belongs to the owner of this restarant or it is the admin:
-  if current_user.id != restaurant.owner_id and current_user.role != 'admin':
-    flash('You are not authorised to create a new menu item for this restaurant')
-    return redirect(url_for('main.showRestaurants'))
-  
-  if request.method == 'POST':
-      newItem = MenuItem(name = request.form['name'], description = request.form['description'], price = request.form['price'], course = request.form['course'], restaurant_id = restaurant_id)
-      db.session.add(newItem)
-      db.session.commit()
-      flash('New Menu %s Item Successfully Created' % (newItem.name))
-      return redirect(url_for('main.showMenu', restaurant_id = restaurant_id))
-  else:
-      return render_template('newmenuitem.html', restaurant_id = restaurant_id)
+    # Check the access if it belongs to the owner of this restarant or it is the admin:
+    if current_user.id != restaurant.owner_id and current_user.role != "admin":
+        flash("You are not authorised to create a new menu item for this restaurant")
+        return redirect(url_for("main.showRestaurants"))
 
-@main.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/edit', methods=['GET','POST'])
+    if request.method == "POST":
+        newItem = MenuItem(
+            name=request.form["name"],
+            description=request.form["description"],
+            price=request.form["price"],
+            course=request.form["course"],
+            restaurant_id=restaurant_id,
+        )
+        db.session.add(newItem)
+        db.session.commit()
+        flash("New Menu %s Item Successfully Created" % (newItem.name))
+        return redirect(url_for("main.showMenu", restaurant_id=restaurant_id))
+    else:
+        return render_template("newmenuitem.html", restaurant_id=restaurant_id)
+
+
+@main.route(
+    "/restaurant/<int:restaurant_id>/menu/<int:menu_id>/edit", methods=["GET", "POST"]
+)
 @login_required
 def editMenuItem(restaurant_id, menu_id):
+    editedItem = db.session.query(MenuItem).filter_by(id=menu_id).one()
+    restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
 
-    editedItem = db.session.query(MenuItem).filter_by(id = menu_id).one()
-    restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
-    
-    #Check the access if it belongs to the owner of this restarant or it is the admin:
-    if current_user.id != restaurant.owner_id and current_user.role != 'admin':
-        flash('You are not authorised to edit a menu item for this restaurant')
-        return redirect(url_for('main.showRestaurants'))
+    # Check the access if it belongs to the owner of this restarant or it is the admin:
+    if current_user.id != restaurant.owner_id and current_user.role != "admin":
+        flash("You are not authorised to edit a menu item for this restaurant")
+        return redirect(url_for("main.showRestaurants"))
 
-    if request.method == 'POST':
-        if request.form['name']:
-            editedItem.name = request.form['name']
-        if request.form['description']:
-            editedItem.description = request.form['description']
-        if request.form['price']:
-            editedItem.price = request.form['price']
-        if request.form['course']:
-            editedItem.course = request.form['course']
+    if request.method == "POST":
+        if request.form["name"]:
+            editedItem.name = request.form["name"]
+        if request.form["description"]:
+            editedItem.description = request.form["description"]
+        if request.form["price"]:
+            editedItem.price = request.form["price"]
+        if request.form["course"]:
+            editedItem.course = request.form["course"]
         db.session.add(editedItem)
-        db.session.commit() 
-        flash('Menu Item Successfully Edited')
-        return redirect(url_for('main.showMenu', restaurant_id = restaurant_id))
+        db.session.commit()
+        flash("Menu Item Successfully Edited")
+        return redirect(url_for("main.showMenu", restaurant_id=restaurant_id))
     else:
-        return render_template('editmenuitem.html', restaurant_id = restaurant_id, menu_id = menu_id, item = editedItem)
+        return render_template(
+            "editmenuitem.html",
+            restaurant_id=restaurant_id,
+            menu_id=menu_id,
+            item=editedItem,
+        )
 
-@main.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/delete', methods = ['GET','POST'])
+
+@main.route(
+    "/restaurant/<int:restaurant_id>/menu/<int:menu_id>/delete", methods=["GET", "POST"]
+)
 @login_required
-def deleteMenuItem(restaurant_id,menu_id):
-    restaurant = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
-    itemToDelete = db.session.query(MenuItem).filter_by(id = menu_id).one() 
+def deleteMenuItem(restaurant_id, menu_id):
+    restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
+    itemToDelete = db.session.query(MenuItem).filter_by(id=menu_id).one()
 
-    #Check the access if it belongs to the owner of this restarant or it is the admin:
-    if current_user.id != restaurant.owner_id and current_user.role != 'admin':
-        flash('You are not authorised to delete a menu item for this restaurant')
-        return redirect(url_for('main.showRestaurants'))
+    # Check the access if it belongs to the owner of this restarant or it is the admin:
+    if current_user.id != restaurant.owner_id and current_user.role != "admin":
+        flash("You are not authorised to delete a menu item for this restaurant")
+        return redirect(url_for("main.showRestaurants"))
 
-    if request.method == 'POST':
+    if request.method == "POST":
         db.session.delete(itemToDelete)
         db.session.commit()
-        flash('Menu Item Successfully Deleted')
-        return redirect(url_for('main.showMenu', restaurant_id = restaurant_id))
+        flash("Menu Item Successfully Deleted")
+        return redirect(url_for("main.showMenu", restaurant_id=restaurant_id))
     else:
-        return render_template('deleteMenuItem.html', item = itemToDelete)
+        return render_template("deleteMenuItem.html", item=itemToDelete)
 
-@main.route('/search/<int:restaurant_id>', methods=['GET', 'POST'])
+
+@main.route("/search/<int:restaurant_id>", methods=["GET", "POST"])
 def search_menu_items(restaurant_id):
     print("hello")
-    query = request.args.get('q', '')
+    query = request.args.get("q", "")
     print("query is:")
     print(query)
     if query:
-        items = db.session.query(MenuItem).filter(MenuItem.name.ilike(f'%{query}%')).all()
+        items = (
+            db.session.query(MenuItem).filter(MenuItem.name.ilike(f"%{query}%")).all()
+        )
         print(items)
         restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
         print(restaurant)
-        return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
+        return redirect(url_for("main.showMenu", restaurant_id=restaurant_id))
     else:
-        return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
+        return redirect(url_for("main.showMenu", restaurant_id=restaurant_id))
 
-@main.route('/search/', methods=['GET', 'POST'])
+
+@main.route("/search/", methods=["GET", "POST"])
 def search_restaurant():
-    query = request.args.get('q', '')
+    query = request.args.get("q", "")
     if query:
         word_list = create_word_list(query)
 
-        conditions = [Restaurant.name.ilike(f'%{word}%') for word in word_list]
-        conditions += [MenuItem.name.ilike(f'%{word}%') for word in word_list]
-        conditions += [MenuItem.description.ilike(f'%{word}%') for word in word_list]
+        conditions = [Restaurant.name.ilike(f"%{word}%") for word in word_list]
+        conditions += [MenuItem.name.ilike(f"%{word}%") for word in word_list]
+        conditions += [MenuItem.description.ilike(f"%{word}%") for word in word_list]
         query = db.session.query(Restaurant).filter(or_(*conditions))
 
         rows = query.all()
@@ -198,11 +232,16 @@ def search_restaurant():
         if rows:
             restaurant_id = rows[0].id
             restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
-            items = db.session.query(MenuItem).filter(MenuItem.restaurant_id == restaurant_id).all()
-            return render_template('menu.html', items=items, restaurant=restaurant)
+            items = (
+                db.session.query(MenuItem)
+                .filter(MenuItem.restaurant_id == restaurant_id)
+                .all()
+            )
+            return render_template("menu.html", items=items, restaurant=restaurant)
 
-    flash('Please enter a valid search query')
-    return redirect(url_for('main.showRestaurants'))
+    flash("Please enter a valid search query")
+    return redirect(url_for("main.showRestaurants"))
+
 
 def create_word_list(query):
     word_list = query.split()
@@ -220,16 +259,24 @@ def create_word_list(query):
     word_list = list(set(word_list))
     return word_list
 
-credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'google_search_keys', 'food-api-386807-d60daa8e2a3f.json')
+
+credentials_path = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "google_search_keys",
+    "food-api-386807-d60daa8e2a3f.json",
+)
 
 credentials = service_account.Credentials.from_service_account_file(credentials_path)
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 
+
 @main.route("/speech", methods=["GET", "POST"])
 def speech():
-    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'PandaGarden.wav')
-    #file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'AAD.wav')
+    file_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "voicetest", "PandaGarden.wav"
+    )
+    # file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'AAD.wav')
     audio_data, sample_width, num_channels, frame_rate = read_wav_file(file_path)
 
     print("Sample width:", sample_width)
@@ -240,22 +287,27 @@ def speech():
     word_list = transcribed_text.split()
 
     if transcribed_text:
-        conditions = [Restaurant.name.ilike(f'%{word}%') for word in word_list]
+        conditions = [Restaurant.name.ilike(f"%{word}%") for word in word_list]
         query = db.session.query(Restaurant).filter(or_(*conditions))
-        
+
         restaurant = query.first()
         if restaurant:
             restaurant_id = restaurant.id
             print("Restaurant ID:", restaurant_id)
-            items = db.session.query(MenuItem).filter(MenuItem.restaurant_id == restaurant_id).all()
+            items = (
+                db.session.query(MenuItem)
+                .filter(MenuItem.restaurant_id == restaurant_id)
+                .all()
+            )
             print("Items:", items)
-            return redirect(url_for('main.showMenu', restaurant_id=restaurant_id))
+            return redirect(url_for("main.showMenu", restaurant_id=restaurant_id))
 
-    flash('Please enter a valid search query')
-    return redirect(url_for('main.showRestaurants'))
+    flash("Please enter a valid search query")
+    return redirect(url_for("main.showRestaurants"))
+
 
 def read_wav_file(file_path):
-    with wave.open(file_path, 'rb') as wav_file:
+    with wave.open(file_path, "rb") as wav_file:
         sample_width = wav_file.getsampwidth()
         num_channels = wav_file.getnchannels()
         frame_rate = wav_file.getframerate()
@@ -280,7 +332,7 @@ def transcribe_audio(audio_data, sample_width, frame_rate):
 
     response = client.recognize(config=config, audio=audio)
 
-    print("Response:", response) 
+    print("Response:", response)
 
     transcribed_text = ""
     for result in response.results:
@@ -290,6 +342,7 @@ def transcribe_audio(audio_data, sample_width, frame_rate):
     print("Transcribed text:", transcribed_text)
 
     return transcribed_text
+
 
 def create_word_list(transcribed_text):
     word_list = transcribed_text.split()
@@ -307,11 +360,44 @@ def create_word_list(transcribed_text):
     word_list = list(set(word_list))
     return word_list
 
-@main.route('/save_audio', methods=['POST'])
-def save_audio():
-    audio = request.files['audio']
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    filename = f'recording_{timestamp}.wav'
-    save_path = os.path.join('voicetest', filename)
-    audio.save(save_path)
-    return 'Audio saved successfully'
+# @main.route("/save_audio", methods=["POST"])
+# def save_audio():
+#     # Check if the 'audio' field exists in the request
+#     if "audio" not in request.files:
+#         flash("No audio file found")
+#         return redirect(request.url)
+
+#     audio_file = request.files["audio"]
+
+#     # Check if the file is not empty
+#     if audio_file.filename == "":
+#         flash("No audio file selected")
+#         return redirect(request.url)
+
+#     # Check if the file is allowed based on the file extension
+#     allowed_extensions = {"wav"}
+#     if not allowed_file(audio_file.filename, allowed_extensions):
+#         flash("Invalid file extension. Only WAV files are allowed.")
+#         return redirect(request.url)
+
+#     # Generate a unique filename for the audio file
+#     filename = generate_unique_filename(audio_file.filename)
+
+#     # Save the audio file to the server
+#     save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+#     audio_file.save(save_path)
+
+#     # Process the saved audio file (e.g., transcribe, analyze, etc.)
+#     transcribed_text = transcribe_audio(save_path)
+#     # Perform further processing on the transcribed text
+
+#     return jsonify({"transcribed_text": transcribed_text})
+
+# def allowed_file(filename, allowed_extensions):
+#     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
+
+
+# def generate_unique_filename(filename):
+#     base_name, ext = os.path.splitext(filename)
+#     unique_name = base_name + "_" + str(uuid.uuid4()) + ext
+#     return unique_name
