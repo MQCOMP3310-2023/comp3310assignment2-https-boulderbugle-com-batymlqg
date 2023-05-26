@@ -17,6 +17,7 @@ from nltk.corpus import wordnet
 from sqlalchemy import or_
 from collections import Counter
 from flask import jsonify
+import datetime
 
 
 main = Blueprint('main', __name__)
@@ -290,39 +291,6 @@ def transcribe_audio(audio_data, sample_width, frame_rate):
 
     return transcribed_text
 
-def read_wav_file(file_path):
-    with wave.open(file_path, 'rb') as wav_file:
-        sample_width = wav_file.getsampwidth()
-        num_channels = wav_file.getnchannels()
-        frame_rate = wav_file.getframerate()
-        num_frames = wav_file.getnframes()
-
-        audio_data = wav_file.readframes(num_frames)
-
-    return audio_data, sample_width, num_channels, frame_rate
-
-def transcribe_audio(audio_data, sample_width, frame_rate):
-    client = speech_v1p1beta1.SpeechClient(credentials=credentials)
-
-    config = {
-        "encoding": enums.RecognitionConfig.AudioEncoding.LINEAR16,
-        "sample_rate_hertz": frame_rate,
-        "language_code": "en-US",
-    }
-
-    audio = {"content": audio_data}
-
-    response = client.recognize(config=config, audio=audio)
-
-    transcribed_text = ""
-    for result in response.results:
-        if result.alternatives:
-            transcribed_text += result.alternatives[0].transcript
-
-    print("Transcribed text:", transcribed_text)
-
-    return transcribed_text
-
 def create_word_list(transcribed_text):
     word_list = transcribed_text.split()
 
@@ -338,3 +306,12 @@ def create_word_list(transcribed_text):
 
     word_list = list(set(word_list))
     return word_list
+
+@main.route('/save_audio', methods=['POST'])
+def save_audio():
+    audio = request.files['audio']
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = f'recording_{timestamp}.wav'
+    save_path = os.path.join('voicetest', filename)
+    audio.save(save_path)
+    return 'Audio saved successfully'
