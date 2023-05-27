@@ -7,7 +7,7 @@ import json as pyjs
 json = Blueprint('json', __name__)
 
 #JSON APIs to view Restaurant Information
-#fixed
+#SQL query built from user-controlled sources - fixed
 @json.route('/restaurant/<restaurant_id>/menu/JSON')
 def restaurantMenuJSON(restaurant_id):
     s = text('select * from menu_item where restaurant_id = :restaurant_id ')
@@ -15,7 +15,7 @@ def restaurantMenuJSON(restaurant_id):
     items_list = [dict(row) for row in items]
     return pyjs.dumps(items_list)
 
-# fixed
+# SQL query built from user-controlled sources - fixedß
 @json.route('/restaurant/<restaurant_id>/menu/<int:menu_id>/JSON')
 def menuItemJSON(restaurant_id, menu_id):
     s = text('SELECT * FROM menu_item WHERE id = :menu_id LIMIT 1')
