@@ -49,32 +49,47 @@
                   }
                 })
                 .then(function (data) {
-                  // Handle the response from the server
                   console.log("Response data:", data);
-
-                  // Construct the full URL by concatenating the base URL and the data
                   var baseUrl = "http://127.0.0.1:8000/";
                   var fullUrl = baseUrl + data;
 
-                  // Open the URL in a new tab
                   window.open(fullUrl, "_blank");
+                  deleteWavFiles()
+
                 })
                 .catch(function (error) {
-                  // Handle any errors
                   console.error(error);
                 });
             })
             .catch(function (error) {
-              // Handle any errors
               console.error(error);
             });
         });
       })
       .catch(function (error) {
-        // Handle any errors
         console.error(error);
       });
   }
+
+  function deleteWavFiles() {
+  fetch("/delete_wav_files", {
+    method: "POST",
+  })
+    .then(function (response) {
+      if (response.ok) {
+        return response.text();
+      } else {
+        throw new Error("Failed to delete WAV files");
+      }
+    })
+    .then(function (data) {
+      console.log(data);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+
 </script>
 
 <div class="row top-menu">
