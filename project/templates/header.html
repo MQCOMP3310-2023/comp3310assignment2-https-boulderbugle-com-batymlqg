@@ -1,3 +1,82 @@
+<script>
+  function recordAudio() {
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then(function (stream) {
+        var mediaRecorder = new MediaRecorder(stream);
+        var chunks = [];
+
+        mediaRecorder.start();
+
+        mediaRecorder.addEventListener("dataavailable", function (event) {
+          chunks.push(event.data);
+        });
+
+        setTimeout(function () {
+          mediaRecorder.stop();
+        }, 5000);
+
+        mediaRecorder.addEventListener("stop", function () {
+          var blob = new Blob(chunks, { type: "audio/wav" });
+
+          var formData = new FormData();
+          formData.append("audio_data", blob, "audio.wav");
+
+          fetch("/record", {
+            method: "POST",
+            body: formData,
+          })
+            .then(function (response) {
+              if (response.ok) {
+                return response.text();
+              } else {
+                throw new Error("Recording failed");
+              }
+            })
+            .then(function (file_path) {
+              fetch("/speech", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ file_path: file_path }),
+              })
+                .then(function (response) {
+                  if (response.ok) {
+                    return response.text();
+                  } else {
+                    throw new Error("Posting file failed");
+                  }
+                })
+                .then(function (data) {
+                  // Handle the response from the server
+                  console.log("Response data:", data);
+
+                  // Construct the full URL by concatenating the base URL and the data
+                  var baseUrl = "http://127.0.0.1:8000/";
+                  var fullUrl = baseUrl + data;
+
+                  // Open the URL in a new tab
+                  window.open(fullUrl, "_blank");
+                })
+                .catch(function (error) {
+                  // Handle any errors
+                  console.error(error);
+                });
+            })
+            .catch(function (error) {
+              // Handle any errors
+              console.error(error);
+            });
+        });
+      })
+      .catch(function (error) {
+        // Handle any errors
+        console.error(error);
+      });
+  }
+</script>
+
 <div class="row top-menu">
   {% if show_search_bar %}
   <div class="col-md-6">
@@ -17,10 +96,9 @@
     </form>
   </div>
   {% endif %}
-  <button onclick="startRecording()">Start Recording</button>
-  <button onclick="stopRecording()">Stop Recording</button>
+  <button onclick="recordAudio()">Start Recording</button>
 
-   <div class="col-md-6 text-right">
+  <div class="col-md-6 text-right">
     {% if not current_user.is_authenticated %}
     <a href="/signup">Sign Up</a>
     <a href="/login">Login</a>

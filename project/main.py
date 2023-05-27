@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import request
 from flask_login import login_required, current_user
 from .models import Restaurant, MenuItem
 from sqlalchemy import asc
@@ -20,11 +21,15 @@ from flask import jsonify
 import datetime
 import json
 from flask_cors import CORS
+import sounddevice as sd
+import soundfile as sf
+import numpy as np
 
 
 main = Blueprint("main", __name__)
 
 CORS(main)
+
 
 # Show the profile page
 @main.route("/profile")
@@ -271,12 +276,56 @@ credentials = service_account.Credentials.from_service_account_file(credentials_
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
 
 
+@main.route("/bleh")
+def get_wav_info():
+    with wave.open(
+        "/home/melody/comp3310assignment2-https-boulderbugle-com-batymlqg/project/voicetest/PandaGarden.wav",
+        "rb",
+    ) as wav_file:
+        sample_width = wav_file.getsampwidth()
+        frame_rate = wav_file.getframerate()
+        num_channels = wav_file.getnchannels()
+        num_frames = wav_file.getnframes()
+        print(sample_width)
+        print(frame_rate)
+        print(num_channels)
+        print(num_frames)
+
+    return "Blah"
+
+
+@main.route("/transcribe", methods=["POST"])
+def transcribe():
+    file_path = request.form["file_path"]
+
+    # Read the audio data from the WAV file
+    with open(file_path, "rb") as audio_file:
+        audio_data = audio_file.read()
+
+    # Perform the transcription using speech_recognition library
+    r = sr.Recognizer()
+    with sr.AudioFile(file_path) as source:
+        audio = r.record(source)
+
+    # Delete the temporary WAV file
+    os.remove(file_path)
+
+    try:
+        transcript = r.recognize_google(audio)
+        print(transcript)
+        return jsonify({"transcript": transcript})
+    except sr.UnknownValueError:
+        print("Error: Unable to recognize speech")
+        return jsonify({"error": "Unable to recognize speech"})
+    except sr.RequestError as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)})
+
+
 @main.route("/speech", methods=["GET", "POST"])
 def speech():
-    file_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "voicetest", "PandaGarden.wav"
-    )
-    # file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voicetest', 'AAD.wav')
+    file_path = request.json.get("file_path")
+    print(file_path)
     audio_data, sample_width, num_channels, frame_rate = read_wav_file(file_path)
 
     print("Sample width:", sample_width)
@@ -284,7 +333,7 @@ def speech():
     print("Frame rate:", frame_rate)
 
     transcribed_text = transcribe_audio(audio_data, sample_width, frame_rate)
-    word_list = transcribed_text.split()
+    word_list = create_word_list(transcribed_text)
 
     if transcribed_text:
         conditions = [Restaurant.name.ilike(f"%{word}%") for word in word_list]
@@ -300,7 +349,9 @@ def speech():
                 .all()
             )
             print("Items:", items)
-            return redirect(url_for("main.showMenu", restaurant_id=restaurant_id))
+            print(url_for("main.showMenu", restaurant_id=restaurant_id))
+            #return redirect(url_for("main.showMenu", restaurant_id=restaurant_id))
+            return url_for("main.showMenu", restaurant_id=restaurant_id)
 
     flash("Please enter a valid search query")
     return redirect(url_for("main.showRestaurants"))
@@ -360,44 +411,21 @@ def create_word_list(transcribed_text):
     word_list = list(set(word_list))
     return word_list
 
-# @main.route("/save_audio", methods=["POST"])
-# def save_audio():
-#     # Check if the 'audio' field exists in the request
-#     if "audio" not in request.files:
-#         flash("No audio file found")
-#         return redirect(request.url)
+@main.route("/record", methods=["POST"])
+def record():
+    # Generate a timestamp for the filename
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
-#     audio_file = request.files["audio"]
+    # Set the sample rate and duration for recording
+    sample_rate = 44100  # You can adjust this as per your requirements
+    duration = 5  # You can adjust this as per your requirements
 
-#     # Check if the file is not empty
-#     if audio_file.filename == "":
-#         flash("No audio file selected")
-#         return redirect(request.url)
+    # Record audio using sounddevice library
+    audio = sd.rec(int(sample_rate * duration), samplerate=sample_rate, channels=1)
+    sd.wait()  # Wait for the recording to complete
 
-#     # Check if the file is allowed based on the file extension
-#     allowed_extensions = {"wav"}
-#     if not allowed_file(audio_file.filename, allowed_extensions):
-#         flash("Invalid file extension. Only WAV files are allowed.")
-#         return redirect(request.url)
+    # Save the recorded audio as a WAV file with the timestamp as the filename
+    file_path = f"./project/voicetest/{timestamp}.wav"  # Filename with timestamp
+    sf.write(file_path, audio, sample_rate)
 
-#     # Generate a unique filename for the audio file
-#     filename = generate_unique_filename(audio_file.filename)
-
-#     # Save the audio file to the server
-#     save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-#     audio_file.save(save_path)
-
-#     # Process the saved audio file (e.g., transcribe, analyze, etc.)
-#     transcribed_text = transcribe_audio(save_path)
-#     # Perform further processing on the transcribed text
-
-#     return jsonify({"transcribed_text": transcribed_text})
-
-# def allowed_file(filename, allowed_extensions):
-#     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
-
-
-# def generate_unique_filename(filename):
-#     base_name, ext = os.path.splitext(filename)
-#     unique_name = base_name + "_" + str(uuid.uuid4()) + ext
-#     return unique_name
+    return file_path
