@@ -1,5 +1,7 @@
 {% extends "main.html" %}
+
 {% block content %}
+
 {% include "header.html" %}
 	<div class="row top-menu">
 		<div class="col-md-10"></div>
@@ -29,9 +31,10 @@
     {% endwith %}
 
 </div>
-	
 	<div class="row padding-top padding-bottom">
 		<div class="col-md-1"></div>
+		{% if current_user.is_authenticated %} 
+		<!-- Only logged in user can see the adding restaurant feature-->
 		<div class="col-md-10 padding-none">
 			<a href="{{url_for('main.newRestaurant')}}">
 				<button class="btn btn-default" id="new-restaurant">
@@ -39,6 +42,7 @@
 				</button>
 			</a>
 		</div>
+		{% endif %}
 		<div class="col-md-1"></div>
 	</div>
 	{% for restaurant in restaurants %}
@@ -47,6 +51,9 @@
 				<div class="col-md-1"></div>
 					<div class="col-md-10 restaurant-list">
 						<h3>{{restaurant.name}}</h3>
+						{% if current_user.is_authenticated and current_user.id == restaurant.owner.id %}
+						<h4>This is your restaurant.</h4>
+						{% endif %}
 					</div>
 				<div class="col-md-1"></div>
 			</div>
