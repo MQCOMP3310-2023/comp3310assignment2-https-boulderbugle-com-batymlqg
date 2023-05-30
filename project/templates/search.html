@@ -1,0 +1,40 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+
+<div class="row top-menu">
+  <div class="col-md-10"></div>
+  <div class="col-md-2 text-right">
+    <form class="form-inline my-2 my-lg-0" action="{{ url_for('main.search_restaurants', restaurant_id=restaurant_id) }}" method="get">
+      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="query">
+      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    </form>
+  </div>
+</div>
+
+<div class="row divider blue">
+  <div class="col-md-12"></div>
+</div>
+
+<div class="row banner main">
+  <div class="col-md-1"></div>
+  <div class="col-md-11 padding-none">
+    <h1>Restaurants</h1>
+  </div>
+</div>
+
+<div class="flash"></div>
+
+{% for restaurant in restaurants %}
+<div class="row padding-top padding-bottom">
+  <div class="col-md-1"></div>
+  <div class="col-md-10 padding-none">
+    <a href="{{ url_for('restaurant_detail', restaurant_id=restaurant.id) }}">
+      <h3>{{ restaurant.name }}</h3>
+    </a>
+  </div>
+  <div class="col-md-1"></div>
+</div>
+{% endfor %}
+
+{% endblock %}
