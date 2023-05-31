@@ -15,7 +15,7 @@ def restaurantMenuJSON(restaurant_id):
     items_list = [dict(row) for row in items]
     return pyjs.dumps(items_list)
 
-# SQL query built from user-controlled sources - fixedß
+# SQL query built from user-controlled sources - fixed
 @json.route('/restaurant/<restaurant_id>/menu/<int:menu_id>/JSON')
 def menuItemJSON(restaurant_id, menu_id):
     s = text('SELECT * FROM menu_item WHERE id = :menu_id LIMIT 1')
