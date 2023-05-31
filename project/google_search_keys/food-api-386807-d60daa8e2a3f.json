@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "food-api-386807",
+  "private_key_id": "d60daa8e2a3ff7f034749067b5bb96bba31b7d33",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC3z7NLIr2joU88\ndn2ZlfAkENp4srVMWLBG1CEiSbnf6WxltNG+XJx4fKwmANulvpk7vMTOmuTJFWe4\nbIk53JWmRLbE+2rmzh09tzbk0liLf1Y3bbJ7kEoLixNguqrGahTUTdf6tlRdiPiJ\nHnyBjTL11a1S3pxnENXTEP3wwbKZORcDtcctbTru0Yy3blXMkvb66lwD5QcYTuAT\n3gB4tmcien1dWC21YFuYlKx+dBqOOYfKqRigqQTuPu0VvsicB28aOfup+AdlM5kn\ncboN/829Cc+pBje3YMQDbL7/ZUQQd9NRqYToXoVbWEVxLQCXqGdhy1mFm5JFj60n\nBcPkUQxrAgMBAAECggEAAV7dGWGoRFYUPyvVrUApoDs38Hp0pkhrArww2w6YV4u9\nW9dzUOtj3J92sSSEfsHjEUehDWFTn2Q3d8U8vgpfsJ5b4TAhZe3Xg071wShdsfyV\nv1K5Z/kgHuHp7RNh6UTVOZgIVOg9zMy+qFcVL+obnSr7YIjPEGhXD9HVSDxJgUxL\nxNGktmKr2NGJ1xEZzTlOtZ8I9aeYgnuOziiaYGJ8mTm80wQMgoArae3ovE081BkS\nJmWhK1087OrdDQAvNm3yFqHMPTSjh5Bkk/V58LOW3aFXc34N9o5qkVtupSeAz0TW\nVvPVzWUj4nJ+a7TNO6KxSqMMb9b1e1uU7UiHZMvkcQKBgQDoiDrst9+mwZU/7G0E\nAWICiIus7yydH1mWeMKiI6iMSGPDSwQv/JJKLeWjCcu9O7OExqkxwhAF6G0anSoo\nfnag84C8hL+9xyhNdulVtEOd6Tjc9YTrk/tQ0wFzVNrQOIcGgt2EFwxoFKPHnJdK\n+sMqDtdkhHyY0g3inxRqWPRpNwKBgQDKXLRgNOpbhCvjs3Y2YdXV7L25i99xnWtb\nkPB6zXE5pjlGxhVf7CNUa7yommQEnJ366ZJ28DIqP45vAYmv2/+YadbTZms9/GHV\nzuOZV+LUu5v+fO6Mbe/cx/5UFxRszaXqmqrHPtc05F4fFDTTEe7h0pmjKfNTCt+X\nFl9bpOHAbQKBgGHDtRKFlFCmHzwLCSKf+jcada81t8ovvhjXmO1WlKy2WstnJNGQ\nHWl2to+/tJtRGH8Aj25OKzJwsD56SZlQ4kt1VXDtVzhRHY7EKgJQkgU4YyHzT/lD\n9Gvc60U0LfNRcOO57ax1jE/OLbXlDm8F0zxBlSm70i7mUdQwEgNMdyYtAoGAeaE0\n7WqAvlb4BlmUoOU3IOi1tHOE7wYeRCAe2sDm4C6v2IEw0cHeDlzfPTvnB/qW3fxM\nA18l18zxsHjtKB2ESDi9Xbz+knhC2b8Lf9yaQyEshs7SludxN3OhwytIJImKwzMJ\nmM6FjY4BoI6FnaP2wBbUL4UEcpJjh61zzWKSKhUCgYEAxnm5WUH1lehs42lwQHUV\n2wlX0i6tdFRGd/93ZebMBoHpmjswDUB20RhHFNMjuI9Tb1ArP6ljtNU9/6jKunLU\nrkXX+Yy0dc2sOF/ltFwGOuD+IQ/yEZxIohNsTcrtxEwfTSuip4ibmpOdRvn/sgWG\nwXTdkW08Q3OHQzvcn4N+CHg=\n-----END PRIVATE KEY-----\n",
+  "client_email": "tts-serving@food-api-386807.iam.gserviceaccount.com",
+  "client_id": "118304614348084664934",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tts-serving%40food-api-386807.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

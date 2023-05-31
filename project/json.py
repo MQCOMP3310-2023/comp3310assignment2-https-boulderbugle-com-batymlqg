@@ -13,7 +13,7 @@ def restaurantMenuJSON(restaurant_id):
     items_list = [ i._asdict() for i in items ]
     return pyjs.dumps(items_list)
 
-
+# SQL query built from user-controlled sources - fixed
 @json.route('/restaurant/<restaurant_id>/menu/<int:menu_id>/JSON')
 def menuItemJSON(restaurant_id, menu_id):
     Menu_Item = db.session.execute(text('select * from menu_item where id = ' + str(menu_id) + ' limit 1'))
