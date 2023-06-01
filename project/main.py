@@ -31,7 +31,7 @@ main = Blueprint("main", __name__)
 credentials_path = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "google_search_keys",
-    "food-api-386807-d60daa8e2a3f.json",
+    "food-api-386807-c9f4e8abd62d.json"
 )
 
 credentials = service_account.Credentials.from_service_account_file(credentials_path)
