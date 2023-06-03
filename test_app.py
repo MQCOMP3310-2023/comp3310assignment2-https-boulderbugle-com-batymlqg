@@ -84,12 +84,12 @@ class TestWebApp(unittest.TestCase):
         }, follow_redirects = True)
         assert response.status_code == 200 
 
-    def test_create_restraut_as_public(self):
+    def test_create_restaurant_as_public(self):
         response = self.client.get('/restaurant/new/', follow_redirects = True)
         assert response.status_code == 200
         assert response.request.path == '/login'
 
-    def test_create_restraut_as_owner(self):
+    def test_create_restaurant_as_owner(self):
         self.client.post('/signup', data = {
             'email' : 'user@test.com',
             'name' : 'test user',
