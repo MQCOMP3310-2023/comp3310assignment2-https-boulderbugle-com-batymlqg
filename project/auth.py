@@ -25,7 +25,6 @@ def login_post():
     # take the user-supplied password and compare it with the stored password
     if not user or not bcrypt.check_password_hash(user.password,password):
         flash('Please check your login details and try again.')
-        #current_app.logger.warning("User login failed")
         return redirect(url_for('auth.login')) # if the user doesn't exist or password is wrong, reload the page
 
     # if the above check passes, then we know the user has the right credentials
@@ -39,14 +38,13 @@ def signup():
 
 @auth.route('/signup', methods=['POST'])
 def signup_post():
-    # code to validate and add user to database goes here
     email = request.form.get('email')
     name = request.form.get('name')
     password = request.form.get('password')
 
     user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
 
-    if user: # if a user is found, we want to redirect back to signup page so user can try again
+    if user: # if a user is found, we want to redirect back to the sign-up page so user can try again
         flash('Email address already exists')
         return redirect(url_for('auth.signup'))
 

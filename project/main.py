@@ -48,12 +48,16 @@ def delete_wav_files():
 
     return "WAV files deleted successfully"
 
+# Show the profile page
 @main.route("/profile")
 @login_required
+# Since this route is decorated with @login_required decorator, we could access all of the current_user
+# attributes. we set name=current_user.name to be able to generate the user's name to the profile page
 def profile():
     return render_template(
         "profile.html", name=current_user.name, role=current_user.role
     )
+
 
 @main.route("/record", methods=["POST"])
 def record():
@@ -70,7 +74,7 @@ def record():
 
     return file_path
 
-
+# Show all restaurants
 @main.route("/")
 @main.route("/restaurant/")
 def showRestaurants():
@@ -80,10 +84,12 @@ def showRestaurants():
         "restaurants.html", restaurants=restaurants, show_search_bar=show_search_bar
     )
 
+# Create a new restaurant & assign that restaurant to the restaurant owner 
 @main.route("/restaurant/new/", methods=["GET", "POST"])
 @login_required
 def newRestaurant():
     if request.method == "POST":
+        # Assign that restaurant to the restaurant owner 
         newRestaurant = Restaurant(name=request.form["name"], owner_id=current_user.id)
         db.session.add(newRestaurant)
         flash("New Restaurant %s Successfully Created" % newRestaurant.name)
@@ -92,12 +98,13 @@ def newRestaurant():
     else:
         return render_template("newRestaurant.html")
 
-
+# Edit a restaurant
 @main.route("/restaurant/<int:restaurant_id>/edit/", methods=["GET", "POST"])
 @login_required
 def editRestaurant(restaurant_id):
     editedRestaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
 
+    # Check the access if it belongs to the owner of this restarant or it is the admin:
     if current_user.id != editedRestaurant.owner_id and current_user.role != "admin":
         flash("You are not authorised to change the name of this restaurant")
         return redirect(url_for("main.showRestaurants"))
@@ -111,12 +118,13 @@ def editRestaurant(restaurant_id):
     else:
         return render_template("editRestaurant.html", restaurant=editedRestaurant)
 
-
+# Delete a restaurant
 @main.route("/restaurant/<int:restaurant_id>/delete/", methods=["GET", "POST"])
 @login_required
 def deleteRestaurant(restaurant_id):
     restaurantToDelete = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
 
+    #Check the access if it belongs to the owner of this restarant or it is the admin:
     if current_user.id != restaurantToDelete.owner_id and current_user.role != "admin":
         flash("You are not authorised to delete this restaurant")
         return redirect(url_for("main.showRestaurants"))
@@ -129,7 +137,7 @@ def deleteRestaurant(restaurant_id):
     else:
         return render_template("deleteRestaurant.html", restaurant=restaurantToDelete)
 
-
+# Show a restaurant menu
 @main.route("/restaurant/<int:restaurant_id>/")
 @main.route("/restaurant/<int:restaurant_id>/menu/")
 def showMenu(restaurant_id):
@@ -137,12 +145,13 @@ def showMenu(restaurant_id):
     items = db.session.query(MenuItem).filter_by(restaurant_id=restaurant_id).all()
     return render_template("menu.html", items=items, restaurant=restaurant)
 
-
+# Create a new menu item
 @main.route("/restaurant/<int:restaurant_id>/menu/new/", methods=["GET", "POST"])
 @login_required
 def newMenuItem(restaurant_id):
     restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
 
+    # Check the access if it belongs to the owner of this restarant or it is the admin:
     if current_user.id != restaurant.owner_id and current_user.role != "admin":
         flash("You are not authorised to create a new menu item for this restaurant")
         return redirect(url_for("main.showRestaurants"))
@@ -162,7 +171,7 @@ def newMenuItem(restaurant_id):
     else:
         return render_template("newmenuitem.html", restaurant_id=restaurant_id)
 
-
+#Edit a menu item
 @main.route(
     "/restaurant/<int:restaurant_id>/menu/<int:menu_id>/edit", methods=["GET", "POST"]
 )
@@ -171,6 +180,7 @@ def editMenuItem(restaurant_id, menu_id):
     editedItem = db.session.query(MenuItem).filter_by(id=menu_id).one()
     restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
 
+    # Check the access if it belongs to the owner of this restarant or it is the admin:
     if current_user.id != restaurant.owner_id and current_user.role != "admin":
         flash("You are not authorised to edit a menu item for this restaurant")
         return redirect(url_for("main.showRestaurants"))
@@ -196,7 +206,7 @@ def editMenuItem(restaurant_id, menu_id):
             item=editedItem,
         )
 
-
+# Delete a menu item
 @main.route(
     "/restaurant/<int:restaurant_id>/menu/<int:menu_id>/delete", methods=["GET", "POST"]
 )
@@ -205,6 +215,7 @@ def deleteMenuItem(restaurant_id, menu_id):
     restaurant = db.session.query(Restaurant).filter_by(id=restaurant_id).one()
     itemToDelete = db.session.query(MenuItem).filter_by(id=menu_id).one()
 
+    # Check the access if it belongs to the owner of this restarant or it is the admin:
     if current_user.id != restaurant.owner_id and current_user.role != "admin":
         flash("You are not authorised to delete a menu item for this restaurant")
         return redirect(url_for("main.showRestaurants"))
@@ -217,7 +228,7 @@ def deleteMenuItem(restaurant_id, menu_id):
     else:
         return render_template("deleteMenuItem.html", item=itemToDelete)
 
-
+# Search a restaurant
 @main.route("/search/<int:restaurant_id>", methods=["GET", "POST"])
 def search_menu_items(restaurant_id):
     query = request.args.get("q", "")
